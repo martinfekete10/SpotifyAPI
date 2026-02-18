@@ -16,9 +16,7 @@ private extension SpotifyAPI where
 
     func saveItemsForCurrentUser(
         uris: [SpotifyURIConvertible],
-        types: [IDCategory],
-        path: String,
-        idsInBody: Bool = true
+        types: [IDCategory]
     ) -> AnyPublisher<Void, Error> {
 
         do {
@@ -28,46 +26,22 @@ private extension SpotifyAPI where
                     .eraseToAnyPublisher()
             }
 
-            let apiRequest: AnyPublisher<(data: Data, response: HTTPURLResponse), Error>
-//
-            if idsInBody {
-
-                let ids = try SpotifyIdentifier.idsArray(
-                    uris,
-                    ensureCategoryMatches: types
-                )
-                apiRequest = self.apiRequest(
-                    path: path,
-                    queryItems: [:],
-                    httpMethod: "PUT",
-                    makeHeaders: Headers.bearerAuthorizationAndContentTypeJSON(_:),
-                    body: ["ids": ids],
-                    requiredScopes: [.userLibraryModify]
+            let urisString = try SpotifyIdentifier
+                .commaSeparatedURIsString(
+                    uris, ensureCategoryMatches: types
                 )
 
-            }
-            // ids in query string
-            else {
-
-                let ids = try SpotifyIdentifier.commaSeparatedIdsString(
-                    uris,
-                    ensureCategoryMatches: types
-                )
-                apiRequest = self.apiRequest(
-                    path: path,
-                    queryItems: ["ids": ids],
-                    httpMethod: "PUT",
-                    makeHeaders: Headers.bearerAuthorizationAndContentTypeJSON(_:),
-                    bodyData: nil,
-                    requiredScopes: [.userLibraryModify]
-                )
-
-            }
-
-            return apiRequest
-                .decodeSpotifyErrors()
-                .map { _, _ in }
-                .eraseToAnyPublisher()
+            return self.apiRequest(
+                path: "/me/library",
+                queryItems: ["uris": urisString],
+                httpMethod: "PUT",
+                makeHeaders: Headers.bearerAuthorizationAndContentTypeJSON(_:),
+                bodyData: nil,
+                requiredScopes: [.userLibraryModify]
+            )
+            .decodeSpotifyErrors()
+            .map { _, _ in }
+            .eraseToAnyPublisher()
 
         } catch {
             return error.anyFailingPublisher()
@@ -77,10 +51,7 @@ private extension SpotifyAPI where
 
     func removeItemsForCurrentUser(
         uris: [SpotifyURIConvertible],
-        types: [IDCategory],
-        path: String,
-        market: String?,
-        idsInBody: Bool = true
+        types: [IDCategory]
     ) -> AnyPublisher<Void, Error> {
 
         do {
@@ -90,50 +61,22 @@ private extension SpotifyAPI where
                     .eraseToAnyPublisher()
             }
 
-            let apiRequest: AnyPublisher<(data: Data, response: HTTPURLResponse), Error>
-
-            if idsInBody {
-
-                let ids = try SpotifyIdentifier.idsArray(
-                    uris,
-                    ensureCategoryMatches: types
-                )
-                apiRequest = self.apiRequest(
-                    path: path,
-                    queryItems: [
-                        "market": market
-                    ],
-                    httpMethod: "DELETE",
-                    makeHeaders: Headers.bearerAuthorizationAndContentTypeJSON(_:),
-                    body: ["ids": ids],
-                    requiredScopes: [.userLibraryModify]
+            let urisString = try SpotifyIdentifier
+                .commaSeparatedURIsString(
+                    uris, ensureCategoryMatches: types
                 )
 
-            }
-            else {
-
-                let ids = try SpotifyIdentifier.commaSeparatedIdsString(
-                    uris,
-                    ensureCategoryMatches: types
-                )
-                apiRequest = self.apiRequest(
-                    path: path,
-                    queryItems: [
-                        "ids": ids,
-                        "market": market
-                    ],
-                    httpMethod: "DELETE",
-                    makeHeaders: Headers.bearerAuthorizationAndContentTypeJSON(_:),
-                    bodyData: nil,
-                    requiredScopes: [.userLibraryModify]
-                )
-
-            }
-
-            return apiRequest
-                .decodeSpotifyErrors()
-                .map { _, _ in }
-                .eraseToAnyPublisher()
+            return self.apiRequest(
+                path: "/me/library",
+                queryItems: ["uris": urisString],
+                httpMethod: "DELETE",
+                makeHeaders: Headers.bearerAuthorizationAndContentTypeJSON(_:),
+                bodyData: nil,
+                requiredScopes: [.userLibraryModify]
+            )
+            .decodeSpotifyErrors()
+            .map { _, _ in }
+            .eraseToAnyPublisher()
 
         } catch {
             return error.anyFailingPublisher()
@@ -143,8 +86,7 @@ private extension SpotifyAPI where
 
     func currentUserLibraryContains(
         uris: [SpotifyURIConvertible],
-        types: [IDCategory],
-        path: String
+        types: [IDCategory]
     ) -> AnyPublisher<[Bool], Error> {
 
         do {
@@ -154,14 +96,14 @@ private extension SpotifyAPI where
                     .eraseToAnyPublisher()
             }
 
-            let idsString = try SpotifyIdentifier
-                .commaSeparatedIdsString(
+            let urisString = try SpotifyIdentifier
+                .commaSeparatedURIsString(
                     uris, ensureCategoryMatches: types
                 )
 
             return self.getRequest(
-                path: path,
-                queryItems: ["ids": idsString],
+                path: "/me/library/contains",
+                queryItems: ["uris": urisString],
                 requiredScopes: [.userLibraryRead]
             )
             .decodeSpotifyObject(
@@ -208,7 +150,7 @@ public extension SpotifyAPI where
      - Returns: An array of the full versions of ``Album`` objects wrapped in a
            ``SavedItem`` object, wrapped in a ``PagingObject``.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-saved-albums
+     [1]: https://developer.spotify.com/documentation/web-api/reference/get-users-saved-albums
      [2]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
      [3]: https://developer.spotify.com/documentation/general/guides/track-relinking-guide/
      */
@@ -259,7 +201,7 @@ public extension SpotifyAPI where
      - Returns: An array of the full versions of ``Track`` objects wrapped in a
            ``SavedItem`` object, wrapped in a ``PagingObject``.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-saved-tracks
+     [1]: https://developer.spotify.com/documentation/web-api/reference/get-users-saved-tracks
      [2]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
      [3]: https://developer.spotify.com/documentation/general/guides/track-relinking-guide/
      */
@@ -311,7 +253,7 @@ public extension SpotifyAPI where
      - Returns: An array of the full versions of ``Show`` objects wrapped in
            a ``SavedItem`` object, wrapped in a ``PagingObject``.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-saved-episodes
+     [1]: https://developer.spotify.com/documentation/web-api/reference/get-users-saved-episodes
      [2]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
      */
     func currentUserSavedEpisodes(
@@ -358,7 +300,7 @@ public extension SpotifyAPI where
      - Returns: An array of the full versions of ``Show`` objects wrapped in
            a ``SavedItem`` object, wrapped in a ``PagingObject``.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-saved-shows
+     [1]: https://developer.spotify.com/documentation/web-api/reference/get-users-saved-shows
      [2]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
      */
     func currentUserSavedShows(
@@ -403,7 +345,7 @@ public extension SpotifyAPI where
      - Returns: An array of the full versions of ``Audiobook`` objects wrapped
            in a ``SavedItem`` object, wrapped in a ``PagingObject``.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-saved-audiobooks
+     [1]: https://developer.spotify.com/documentation/web-api/reference/get-users-saved-audiobooks
      */
     func currentUserSavedAudiobooks(
         limit: Int? = nil,
@@ -441,14 +383,14 @@ public extension SpotifyAPI where
      - Returns: An array of `true` or `false` values, in the order requested,
            indicating whether the user's library contains each album.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-albums
+     [1]: https://developer.spotify.com/documentation/web-api/reference/check-library-contains
      */
     func currentUserSavedAlbumsContains(
         _ uris: [SpotifyURIConvertible]
     ) -> AnyPublisher<[Bool], Error> {
 
         return self.currentUserLibraryContains(
-            uris: uris, types: [.album], path: "/me/albums/contains"
+            uris: uris, types: [.album]
         )
 
     }
@@ -469,14 +411,14 @@ public extension SpotifyAPI where
      - Returns: An array of `true` or `false` values, in the order requested,
            indicating whether the user's library contains each track.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-tracks
+     [1]: https://developer.spotify.com/documentation/web-api/reference/check-library-contains
      */
     func currentUserSavedTracksContains(
         _ uris: [SpotifyURIConvertible]
     ) -> AnyPublisher<[Bool], Error> {
 
         return self.currentUserLibraryContains(
-            uris: uris, types: [.track], path: "/me/tracks/contains"
+            uris: uris, types: [.track]
         )
 
     }
@@ -500,14 +442,14 @@ public extension SpotifyAPI where
            in the order requested, indicating whether the user's
            library contains each episode.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-episodes
+     [1]: https://developer.spotify.com/documentation/web-api/reference/check-library-contains
      */
     func currentUserSavedEpisodesContains(
         _ uris: [SpotifyURIConvertible]
     ) -> AnyPublisher<[Bool], Error> {
 
         return self.currentUserLibraryContains(
-            uris: uris, types: [.episode], path: "/me/episodes/contains"
+            uris: uris, types: [.episode]
         )
 
     }
@@ -528,14 +470,14 @@ public extension SpotifyAPI where
      - Returns: An array of `true` or `false` values, in the order requested,
            indicating whether the user's library contains each show.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-shows
+     [1]: https://developer.spotify.com/documentation/web-api/reference/check-library-contains
      */
     func currentUserSavedShowsContains(
         _ uris: [SpotifyURIConvertible]
     ) -> AnyPublisher<[Bool], Error> {
 
         return self.currentUserLibraryContains(
-            uris: uris, types: [.show], path: "/me/shows/contains"
+            uris: uris, types: [.show]
         )
 
     }
@@ -556,7 +498,7 @@ public extension SpotifyAPI where
      - Returns: An array of `true` or `false` values, in the order requested,
            indicating whether the user's library contains each audiobook.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-audiobooks
+     [1]: https://developer.spotify.com/documentation/web-api/reference/check-library-contains
      */
     func currentUserSavedAudiobooksContains(
         _ uris: [SpotifyURIConvertible]
@@ -564,8 +506,7 @@ public extension SpotifyAPI where
 
         return self.currentUserLibraryContains(
             uris: uris,
-            types: [.audiobook, .show],
-            path: "/me/audiobooks/contains"
+            types: [.audiobook, .show]
         )
 
     }
@@ -582,14 +523,14 @@ public extension SpotifyAPI where
            Passing in an empty array will prevent a network request from being
            made.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/save-albums-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/save-library-items
      */
     func saveAlbumsForCurrentUser(
         _ uris: [SpotifyURIConvertible]
     ) -> AnyPublisher<Void, Error> {
 
         return self.saveItemsForCurrentUser(
-            uris: uris, types: [.album], path: "/me/albums"
+            uris: uris, types: [.album]
         )
 
     }
@@ -606,14 +547,14 @@ public extension SpotifyAPI where
            Passing in an empty array will prevent a network request from being
            made.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/save-tracks-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/save-library-items
      */
     func saveTracksForCurrentUser(
         _ uris: [SpotifyURIConvertible]
     ) -> AnyPublisher<Void, Error> {
 
         return self.saveItemsForCurrentUser(
-            uris: uris, types: [.track], path: "/me/tracks"
+            uris: uris, types: [.track]
         )
 
     }
@@ -632,14 +573,14 @@ public extension SpotifyAPI where
            Passing in an empty array will prevent a network request from being
            made.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/save-shows-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/save-library-items
      */
     func saveEpisodesForCurrentUser(
         _ uris: [SpotifyURIConvertible]
     ) -> AnyPublisher<Void, Error> {
 
         return self.saveItemsForCurrentUser(
-            uris: uris, types: [.episode], path: "/me/episodes"
+            uris: uris, types: [.episode]
         )
 
     }
@@ -656,7 +597,7 @@ public extension SpotifyAPI where
            Passing in an empty array will prevent a network request from being
            made.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/save-shows-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/save-library-items
      */
     func saveShowsForCurrentUser(
         _ uris: [SpotifyURIConvertible]
@@ -664,9 +605,7 @@ public extension SpotifyAPI where
 
         return self.saveItemsForCurrentUser(
             uris: uris, 
-            types: [.show],
-            path: "/me/shows",
-            idsInBody: false
+            types: [.show]
         )
 
     }
@@ -683,7 +622,7 @@ public extension SpotifyAPI where
            Passing in an empty array will prevent a network request from being
            made.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/save-audiobooks-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/save-library-items
      */
     func saveAudiobooksForCurrentUser(
         _ uris: [SpotifyURIConvertible]
@@ -691,9 +630,7 @@ public extension SpotifyAPI where
 
         return self.saveItemsForCurrentUser(
             uris: uris,
-            types: [.audiobook, .show],
-            path: "/me/audiobooks",
-            idsInBody: false
+            types: [.audiobook, .show]
         )
 
     }
@@ -710,7 +647,7 @@ public extension SpotifyAPI where
            Passing in an empty array will prevent a network request from being
            made.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-albums-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/remove-library-items
      */
     func removeSavedAlbumsForCurrentUser(
         _ uris: [SpotifyURIConvertible]
@@ -718,9 +655,7 @@ public extension SpotifyAPI where
 
         return self.removeItemsForCurrentUser(
             uris: uris,
-            types: [.album],
-            path: "/me/albums",
-            market: nil
+            types: [.album]
         )
 
     }
@@ -737,7 +672,7 @@ public extension SpotifyAPI where
            Passing in an empty array will prevent a network request from being
            made.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-tracks-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/remove-library-items
      */
     func removeSavedTracksForCurrentUser(
         _ uris: [SpotifyURIConvertible]
@@ -745,9 +680,7 @@ public extension SpotifyAPI where
 
         return self.removeItemsForCurrentUser(
             uris: uris,
-            types: [.track],
-            path: "/me/tracks",
-            market: nil
+            types: [.track]
         )
 
     }
@@ -764,7 +697,7 @@ public extension SpotifyAPI where
            Passing in an empty array will prevent a network request from being
            made.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-episodes-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/remove-library-items
      [2]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
      [3]: https://www.spotify.com/account/overview/
      */
@@ -774,9 +707,7 @@ public extension SpotifyAPI where
 
         return self.removeItemsForCurrentUser(
             uris: uris,
-            types: [.episode],
-            path: "/me/episodes",
-            market: nil
+            types: [.episode]
         )
 
     }
@@ -802,21 +733,17 @@ public extension SpotifyAPI where
              view the country that is associated with their account in the
              [account settings][3].
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-shows-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/remove-library-items
      [2]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
      [3]: https://www.spotify.com/account/overview/
      */
     func removeSavedShowsForCurrentUser(
-        _ uris: [SpotifyURIConvertible],
-        market: String? = nil
+        _ uris: [SpotifyURIConvertible]
     ) -> AnyPublisher<Void, Error> {
 
         return self.removeItemsForCurrentUser(
             uris: uris,
-            types: [.show],
-            path: "/me/shows",
-            market: market,
-            idsInBody: false
+            types: [.show]
         )
 
     }
@@ -833,7 +760,7 @@ public extension SpotifyAPI where
            Passing in an empty array will prevent a network request from being
            made.
 
-     [1]: https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-audiobooks-user
+     [1]: https://developer.spotify.com/documentation/web-api/reference/remove-library-items
      */
     func removeSavedAudiobooksForCurrentUser(
         _ uris: [SpotifyURIConvertible]
@@ -841,10 +768,7 @@ public extension SpotifyAPI where
 
         return self.removeItemsForCurrentUser(
             uris: uris,
-            types: [.audiobook, .show],
-            path: "/me/audiobooks",
-            market: nil,
-            idsInBody: false
+            types: [.audiobook, .show]
         )
 
     }

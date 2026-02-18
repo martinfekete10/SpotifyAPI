@@ -43,6 +43,45 @@ public struct SpotifyIdentifier: Codable, Hashable, SpotifyURIConvertible {
         .joined(separator: ",")
         
     }
+
+    /**
+     Creates a comma separated string (with no spaces) of full Spotify URIs
+     from a sequence of URIs (used in the query parameter of the unified
+     library endpoints).
+
+     - Parameters:
+       - uris: A sequence of Spotify URIs.
+       - categories: If not `nil`, ensure the id categories of all the URIs
+             match one or more categories. The default is `nil`.
+     - Throws: If `categories` is not `nil` and the id category of a URI does
+           not match one the required categories or if an id or id category
+           could not be parsed from a URI.
+     - Returns: A comma-separated string of full Spotify URIs.
+     */
+    public static func commaSeparatedURIsString<S: Sequence>(
+        _ uris: S,
+        ensureCategoryMatches categories: [IDCategory]? = nil
+    ) throws -> String where S.Element == SpotifyURIConvertible {
+
+        let identifiers = try uris.map { uri in
+            try Self(uri: uri)
+        }
+
+        if let categories = categories {
+            let allIdCategories = identifiers.map(\.idCategory)
+                .removingDuplicates()
+            if !allIdCategories.allSatisfy({ category in
+                categories.contains(category)
+            }) {
+                throw SpotifyGeneralError.invalidIdCategory(
+                    expected: categories, received: allIdCategories
+                )
+            }
+        }
+
+        return identifiers.map(\.uri).joined(separator: ",")
+
+    }
     
     /**
      Creates an array of Spotify ids from a sequence of URIs.

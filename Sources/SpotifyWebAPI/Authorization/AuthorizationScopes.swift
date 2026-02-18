@@ -175,7 +175,7 @@ public enum Scope: String, Codable, Hashable {
      * ``SpotifyAPI/removeSavedAlbumsForCurrentUser(_:)``
      * ``SpotifyAPI/removeSavedTracksForCurrentUser(_:)``
      * ``SpotifyAPI/removeSavedEpisodesForCurrentUser(_:)``
-     * ``SpotifyAPI/removeSavedShowsForCurrentUser(_:market:)``
+     * ``SpotifyAPI/removeSavedShowsForCurrentUser(_:)``
      */
     case userLibraryModify = "user-library-modify"
     
