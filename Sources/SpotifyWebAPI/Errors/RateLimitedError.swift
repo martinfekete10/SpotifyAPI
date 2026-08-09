@@ -22,8 +22,25 @@ public struct RateLimitedError: LocalizedError, Codable, Hashable {
     
     /// The number of seconds you must wait before you try the request again.
     public let retryAfter: Int?
+
+    /// Spotify's optional reason for the 429 response.
+    public let reason: String?
+
+    /// Whether Spotify rejected the request because the application's quota is exhausted.
+    public var isQuotaExceeded: Bool {
+        reason == "QUOTA_EXCEEDED"
+    }
+
+    public init(retryAfter: Int?, reason: String? = nil) {
+        self.retryAfter = retryAfter
+        self.reason = reason
+    }
     
     public var errorDescription: String? {
+        if isQuotaExceeded {
+            return "This Spotify application has reached its API quota. Try again later or use a different Spotify Client ID."
+        }
+
         var description = "You have made too many requests (rate limiting error)."
         if let seconds = retryAfter {
             if seconds == 1 {

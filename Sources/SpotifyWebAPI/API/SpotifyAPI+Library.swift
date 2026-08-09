@@ -10,6 +10,8 @@ import OpenCombineFoundation
 import FoundationNetworking
 #endif
 
+private let maximumLibraryItemsPerRequest = 40
+
 private extension SpotifyAPI where
     AuthorizationManager: SpotifyScopeAuthorizationManager
 {
@@ -24,6 +26,14 @@ private extension SpotifyAPI where
             if uris.isEmpty {
                 return ResultPublisher(())
                     .eraseToAnyPublisher()
+            }
+
+            guard uris.count <= maximumLibraryItemsPerRequest else {
+                return SpotifyGeneralError.other(
+                    "Too many library items",
+                    localizedDescription: "Spotify accepts at most \(maximumLibraryItemsPerRequest) library items per request."
+                )
+                .anyFailingPublisher()
             }
 
             let urisString = try SpotifyIdentifier
@@ -61,6 +71,14 @@ private extension SpotifyAPI where
                     .eraseToAnyPublisher()
             }
 
+            guard uris.count <= maximumLibraryItemsPerRequest else {
+                return SpotifyGeneralError.other(
+                    "Too many library items",
+                    localizedDescription: "Spotify accepts at most \(maximumLibraryItemsPerRequest) library items per request."
+                )
+                .anyFailingPublisher()
+            }
+
             let urisString = try SpotifyIdentifier
                 .commaSeparatedURIsString(
                     uris, ensureCategoryMatches: types
@@ -94,6 +112,14 @@ private extension SpotifyAPI where
             if uris.isEmpty {
                 return ResultPublisher([])
                     .eraseToAnyPublisher()
+            }
+
+            guard uris.count <= maximumLibraryItemsPerRequest else {
+                return SpotifyGeneralError.other(
+                    "Too many library items",
+                    localizedDescription: "Spotify accepts at most \(maximumLibraryItemsPerRequest) library items per request."
+                )
+                .anyFailingPublisher()
             }
 
             let urisString = try SpotifyIdentifier
@@ -375,7 +401,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of album URIs. Maximum: 50. Duplicate albums in
+     - Parameter uris: An array of album URIs. Maximum: 40. Duplicate albums in
            the request will result in duplicate values in the response. A single
            invalid URI causes the entire request to fail. Passing in an empty
            array will immediately cause an empty array of results to be returned
@@ -403,7 +429,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of track URIs. Maximum: 50. Duplicate tracks in
+     - Parameter uris: An array of track URIs. Maximum: 40. Duplicate tracks in
            the request will result in duplicate values in the response. A single
            invalid URI causes the entire request to fail. Passing in an empty
            array will immediately cause an empty array of results to be returned
@@ -433,7 +459,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of episode URIs. Maximum: 50. Duplicate episodes
+     - Parameter uris: An array of episode URIs. Maximum: 40. Duplicate episodes
            in the request will result in duplicate values in the response. A
            single invalid URI causes the entire request to fail. Passing in an
            empty array will immediately cause an empty array of results to be
@@ -462,7 +488,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of show URIs. Maximum: 50. Duplicate shows in
+     - Parameter uris: An array of show URIs. Maximum: 40. Duplicate shows in
            the request will result in duplicate values in the response. A single
            invalid URI causes the entire request to fail. Passing in an empty
            array will immediately cause an empty array of results to be returned
@@ -490,7 +516,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of audiobook URIs. Maximum: 50. Duplicate
+     - Parameter uris: An array of audiobook URIs. Maximum: 40. Duplicate
            audiobooks in the request will result in duplicate values in the
            response. A single invalid URI causes the entire request to fail.
            Passing in an empty array will immediately cause an empty array of
@@ -518,7 +544,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of album URIs. Maximum: 50. Duplicates will be
+     - Parameter uris: An array of album URIs. Maximum: 40. Duplicates will be
            ignored. A single invalid URI causes the entire request to fail.
            Passing in an empty array will prevent a network request from being
            made.
@@ -542,7 +568,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of track URIs. Maximum: 50. Duplicates will be
+     - Parameter uris: An array of track URIs. Maximum: 40. Duplicates will be
            ignored. A single invalid URI causes the entire request to fail.
            Passing in an empty array will prevent a network request from being
            made.
@@ -568,7 +594,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of episode URIs. Maximum: 50. Duplicates will be
+     - Parameter uris: An array of episode URIs. Maximum: 40. Duplicates will be
            ignored. A single invalid URI causes the entire request to fail.
            Passing in an empty array will prevent a network request from being
            made.
@@ -592,7 +618,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of show URIs. Maximum: 50. Duplicates will be
+     - Parameter uris: An array of show URIs. Maximum: 40. Duplicates will be
            ignored. A single invalid URI causes the entire request to fail.
            Passing in an empty array will prevent a network request from being
            made.
@@ -617,7 +643,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of audiobook URIs. Maximum: 50. Duplicates will
+     - Parameter uris: An array of audiobook URIs. Maximum: 40. Duplicates will
            be ignored. A single invalid URI causes the entire request to fail.
            Passing in an empty array will prevent a network request from being
            made.
@@ -642,7 +668,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of album URIs. Maximum: 50. Duplicates will be
+     - Parameter uris: An array of album URIs. Maximum: 40. Duplicates will be
            ignored. A single invalid URI causes the entire request to fail.
            Passing in an empty array will prevent a network request from being
            made.
@@ -667,7 +693,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of track URIs. Maximum: 50. Duplicates will be
+     - Parameter uris: An array of track URIs. Maximum: 40. Duplicates will be
            ignored. A single invalid URI causes the entire request to fail.
            Passing in an empty array will prevent a network request from being
            made.
@@ -692,7 +718,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of episode URIs. Maximum: 50. Duplicates will be
+     - Parameter uris: An array of episode URIs. Maximum: 40. Duplicates will be
            ignored. A single invalid URI causes the entire request to fail.
            Passing in an empty array will prevent a network request from being
            made.
@@ -720,7 +746,7 @@ public extension SpotifyAPI where
      Read more at the [Spotify web API reference][1].
 
      - Parameters:
-       - uris: An array of show URIs. Maximum: 50. Duplicates will be ignored.
+       - uris: An array of show URIs. Maximum: 40. Duplicates will be ignored.
              A single invalid URI causes the entire request to fail. Passing in
              an empty array will prevent a network request from being made.
        - market: An [ISO 3166-1 alpha-2 country code][2] or the string
@@ -755,7 +781,7 @@ public extension SpotifyAPI where
 
      Read more at the [Spotify web API reference][1].
 
-     - Parameter uris: An array of audiobook URIs. Maximum: 50. Duplicates will
+     - Parameter uris: An array of audiobook URIs. Maximum: 40. Duplicates will
            be ignored. A single invalid URI causes the entire request to fail.
            Passing in an empty array will prevent a network request from being
            made.

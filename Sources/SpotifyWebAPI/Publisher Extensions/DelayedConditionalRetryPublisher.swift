@@ -177,6 +177,9 @@ extension Publisher {
                 #endif
     //            Swift.print("retryOnRateLimitedError: \(rateLimitedError)")
 
+                if rateLimitedError.isQuotaExceeded {
+                    return nil
+                }
 
                 // MARK: don't retry at all if max retry delay is 0
                 if maxRetryDelay == 0 {

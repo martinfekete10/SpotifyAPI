@@ -64,10 +64,11 @@ public protocol AuthorizationCodeFlowBackend: Codable, Hashable {
      above method, then an error will be thrown *before* this method is called.
 
      This method must return the authorization information as JSON data that can
-     be decoded into ``AuthInfo``. The ``AuthInfo/accessToken``,
-     ``AuthInfo/refreshToken``, and ``AuthInfo/expirationDate`` (which can be
-     decoded from the "expires_in" JSON key) properties must be non-`nil`. For
-     example:
+     be decoded into ``AuthInfo``. The ``AuthInfo/accessToken`` and
+     ``AuthInfo/expirationDate`` (which can be decoded from the "expires_in"
+     JSON key) properties must be non-`nil`. If a refresh token is supplied, it
+     replaces the existing refresh token; otherwise, the existing token is
+     retained. For example:
 
      ```
      {

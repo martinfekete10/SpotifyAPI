@@ -102,7 +102,12 @@ public func decodeSpotifyErrors(
             )
         }
 
-        return RateLimitedError(retryAfter: retryAfter)
+        let reason = try? JSONDecoder()
+            .decode(SpotifyRateLimitResponse.self, from: data)
+            .error
+            .reason
+
+        return RateLimitedError(retryAfter: retryAfter, reason: reason)
         
     }
 
@@ -128,6 +133,14 @@ public func decodeSpotifyErrors(
     
     return SpotifyGeneralError.httpError(data, httpURLResponse)
     
+}
+
+private struct SpotifyRateLimitResponse: Decodable {
+    let error: Details
+
+    struct Details: Decodable {
+        let reason: String?
+    }
 }
 
 /**
