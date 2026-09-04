@@ -16,7 +16,7 @@ import FoundationNetworking
  * ``SpotifyPlayerError``
  * ``RateLimitedError``
  */
-public enum SpotifyGeneralError {
+public enum SpotifyGeneralError: @unchecked Sendable {
     
     /**
      You have tried to access an endpoint before authorizing your app or the

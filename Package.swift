@@ -79,7 +79,7 @@ var packageDependencies: [Package.Dependency] {
         ),
         .package(
             url: "https://github.com/apple/swift-log.git",
-            from: "1.4.0"
+            from: "1.13.0"
         ),
         .package(
             url: "https://github.com/OpenCombine/OpenCombine.git",

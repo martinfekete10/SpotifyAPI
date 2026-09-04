@@ -73,6 +73,13 @@ public struct SpotifyAPILogHandler: LogHandler {
         }
     }
 
+    public func log(event: LogEvent) {
+        let logMessage = """
+            [\(label): \(event.level): \(event.function) line \(event.line)] \(event.message)
+            """
+        print(logMessage)
+    }
+
     public func log(
         level: Logger.Level,
         message: Logger.Message,
